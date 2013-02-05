@@ -24,6 +24,8 @@ define (require) ->
 
   EditOverlayMixin =
     _overlayTemplate: _.template require 'text!templates/core/_edit_overlay.html'
+    # Change the overlayText content to display another text
+    overlayText: i18n 'Edit this'
 
     setMode: (@mode=(@options.mode ? 'show')) ->
       if @mode is 'edit'
@@ -31,8 +33,8 @@ define (require) ->
       else
         @hideOverlay()
 
-    showOverlay: (msg = i18n "Edit this") ->
-      @_overlay ?= $(@_overlayTemplate {msg: msg})
+    showOverlay: (msg) ->
+      @_overlay ?= $(@_overlayTemplate {msg: msg ? @overlayText})
       @$el.append @_overlay.css(
         marginTop: @$el.height() * -1,
         height: @$el.height()

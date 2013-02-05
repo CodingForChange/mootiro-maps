@@ -170,12 +170,9 @@ define (require) ->
       # This method is called when an action button is clicked
       #
       e.preventDefault()
-
       # Get the action from 'data-action' attribute
       action = if $(e.target).hasClass 'active' then 'show' else $(e.target).attr 'data-action'
-      # This comes from main/models::CommonObject
-      url = @model["#{action}Url"]?()
-      app.goTo url
+      app[action]?(@model)
 
     setMode: (@mode) ->
       # Toggle buttons related to display modes (edit, history, discuss, etc)
@@ -193,7 +190,8 @@ define (require) ->
       @mapEditor = new mapViews.Editor
         parentSelector: '#map-container'
       @subViews.push @mapEditor
-      @listenTo @mapEditor, 'initialize', => @trigger 'initialize'
+      # Proxy all @mapEditor events
+      @listenTo @mapEditor, 'all', => @trigger.apply this, arguments
       # Resize the map when browser is resized
       $(window).resize @resizeElement
       @render()
@@ -212,8 +210,20 @@ define (require) ->
       @resizeElement()
       this
 
+    refresh: ->
+      @mapEditor.refresh.apply @mapEditor, arguments
+
+    load: ->
+      @mapEditor.load.apply @mapEditor, arguments
+
+    edit: ->
+      @mapEditor.edit.apply @mapEditor, arguments
+
+    clear: ->
+      @mapEditor.clear.apply @mapEditor, arguments
+
     getMap: ->
-      @mapEditor.getMap()
+      @mapEditor.getMap.apply @mapEditor, arguments
 
 
   Header: Header

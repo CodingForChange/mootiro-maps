@@ -12,6 +12,7 @@ define (require) ->
   class App
     _.extend @prototype, Backbone.Events
     constructor: ->
+      # Using deferred objects to handle async returns
       @initialized = new $.Deferred()
       $.when(
         @interceptAjaxRequests()
@@ -27,15 +28,10 @@ define (require) ->
           @trigger 'initialize'
           @initialized.resolve true
 
-    goTo: (url, page) ->
-      $.when(pageManager.canClose()).done =>
-        if page?
-          @routers[0].navigate url
-          pageManager.open page
-        else
-          @routers[0].navigate url, trigger: true
-
     handleModulesError: ->
+      #
+      # Display 'timeout' message and raise an error event.
+      #
       requirejs.onError = (err) =>
         if err.requireType == 'timeout'
           # TODO: i18n me
@@ -45,7 +41,15 @@ define (require) ->
           @trigger 'error', err
       true
 
+    ##
+    ## Initialization methods
+    ##
+
     interceptAjaxRequests: ->
+      #
+      # Add CSRF Token to Ajax requests, show/hide 'working...' feedback and
+      # verifies session id.
+      #
       sameOrigin = (url) ->
         # url could be relative or scheme relative or absolute
         host = document.location.host  # host + port
@@ -81,6 +85,9 @@ define (require) ->
       true
 
     initializeUser: ->
+      #
+      # Create a Backbone model for the logged in user.
+      #
       dfd = new $.Deferred()
       # Create the logged in user model
       require ['user/models'], (userModels) =>
@@ -101,6 +108,9 @@ define (require) ->
       dfd.promise()
 
     drawLayout: ->
+      #
+      # Draw the main layout
+      #
       dfd = new $.Deferred()
       require ['main/views'], (mainViews) =>
         # Create the facebook DOM element
@@ -109,8 +119,8 @@ define (require) ->
         # Draw layout blocks
 
         # Feedback block
-        feedback = new mainViews.Feedback
-          el: '#feedback-container'
+        feedback = new mainViews.Feedback()
+        $('#feedback-container').append feedback.$el
 
         # Header block
         header = new mainViews.Header
@@ -125,6 +135,9 @@ define (require) ->
       dfd.promise()
 
     initializeRouters: ->
+      #
+      # Initialize all apps routes. You should add your router here.
+      #
       dfd = new $.Deferred()
       @routers = []
       $ =>
@@ -150,12 +163,18 @@ define (require) ->
       dfd.promise()
 
     initializeAnalytics: ->
+      #
+      # Load the Google analytics javascript.
+      #
       dfd = new $.Deferred()
       $ -> require ['services/analytics'], (analytics) ->
           dfd.resolve analytics.initialize()
       dfd.promise()
 
     initializeMapEditor: ->
+      #
+      # Create the reusable map editor.
+      #
       dfd = new $.Deferred()
       require ['main/views'], (mainViews) =>
         $('#map-editor-container').hide()
@@ -164,17 +183,103 @@ define (require) ->
         @mapEditor.once 'initialize', => dfd.resolve true
       dfd.promise()
 
-    showMainMap: ->
+    ##
+    ## General use methods
+    ##
+
+    closeOverlays: ->
+      #
+      # Close all dialogs and overlays.
+      #
+      @hideMainMap()
+
+    goTo: (url, page = null) ->
+      #
+      # Navigate between pages.
+      #
+      # When called by router the argument 'page' is mandatory.
+      #
+      $.when(pageManager.canClose()).done =>
+        @closeOverlays()
+        if page?
+          @routers[0].navigate url
+          pageManager.open page
+        else
+          @routers[0].navigate url, trigger: true
+
+
+    showMainMap: (model = null) ->
+      #
+      # Open the main map without close the current page.
+      #
+      dfd = new $.Deferred()
       $.when(@initialized).done =>
         $('#map-editor-container').show()
-        @mapEditor.getMap().refresh()
+        @mapEditor.refresh()
+        @mapEditor.load model
+        dfd.resolve true
+      return dfd.promise()
 
     hideMainMap: ->
-      $.when(@initialize).done =>
+      #
+      # Close the main map.
+      #
+      $.when(@initialized).done =>
         $('#map-editor-container').hide()
-        @mapEditor.getMap().refresh()
+        @mapEditor.clear()
+
+    ##
+    ## Main model actions
+    ##
+
+    show: (model) ->
+      #
+      # Open the model show page
+      #
+      @goTo model.showUrl()  # This comes from main/models::CommonObject
+
+    edit: (model) ->
+      #
+      # Open the model edit form
+      #
+      @goTo model.editUrl()  # This comes from main/models::CommonObject
+
+    editGeometry: (model) ->
+      #
+      # Open the map editor to edit the model geometry
+      #
+      $.when(
+        # Open the main map and load the model geometry
+        @showMainMap model
+      ).done =>
+        # Set the model geometry editable
+        @mapEditor.edit()
+        # Listen to cancel event to close the main map
+        @mapEditor.once 'cancel', =>
+          @hideMainMap()
+        # Listen to save event to save update the model geometry and close the main map
+        @mapEditor.once 'save', (geojson) =>
+          model.get('geojson')['features'] = [geojson]
+          model.trigger 'change change:geojson'
+          @hideMainMap()
+
+    rate: (model) ->
+      # TODO
+
+    discuss: (model) ->
+      # TODO
+
+    history: (model) ->
+      # TODO
+
+    report: (model) ->
+      # TODO
+
+    delete: (model) ->
+      # TODO
 
 
   return {
     App: App
   }
+

@@ -5,6 +5,9 @@
     'send': {
       'pt-br': 'enviar'
     },
+    'Edit': {
+      'pt-br': 'Editar'
+    },
     'Login': {
       'pt-br': 'Entrar'
     },
@@ -166,6 +169,12 @@
     },
     'Longitude': {
       'pt-br': 'Longitude'
+    },
+    'Loading...': {
+      'pt-br': 'Carregando...'
+    },
+    'Change point position': {
+      'pt-br': 'Mudar ponto no mapa'
     }
   };
 

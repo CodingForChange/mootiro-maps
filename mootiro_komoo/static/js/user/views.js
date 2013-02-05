@@ -142,6 +142,7 @@
         this.subViews.push(new mapViews.Preview({
           model: this.model,
           mode: this.options.mode,
+          overlayText: i18n('Change point position'),
           parentSelector: '.map.box'
         }));
         this.render();

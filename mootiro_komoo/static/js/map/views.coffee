@@ -29,6 +29,7 @@ define (require) ->
         @mapElement = $('<div>')
         @loaded = false
       @mapElement.on 'initialized', =>
+        @handleMapEvents?()
         @trigger 'initialize'
       @render()
       window.pm = this
@@ -40,16 +41,16 @@ define (require) ->
       @mapElement.one 'features_loaded', (e) =>
         @mapElement.fadeTo 0, 0
         @$el.empty().css(height: '100%').append @mapElement
-        @refresh().fadeTo 100, 1
+        @refresh()
+        @center().fadeTo 100, 1
         mapElementCache[@type] = @mapElement
         @loaded = true
         @setMode @mode if @mode?
 
       if not @loaded
         @mapElement.komooMap @mapData
-
       else
-        @mapElement.komooMap('geojson', @model.get('geojson'))
+        @load @model
 
       this
 
@@ -67,7 +68,18 @@ define (require) ->
       super
 
     refresh: ->
-      @mapElement.komooMap('refresh').komooMap('center')
+      @mapElement.komooMap('refresh')
+
+    center: ->
+      @mapElement.komooMap('center')
+
+    load: (@model) ->
+      return if not @model?
+      @mapElement.komooMap('geojson', @model.get('geojson'))
+      @center()
+
+    clear: ->
+      @getMap()?.clear()
 
     getMap: ->
       @mapElement.data('map')
@@ -80,6 +92,8 @@ define (require) ->
       'click .overlay > .edit': 'edit'
 
     initialize: ->
+      @overlayText = @options.overlayText ? i18n 'Edit'
+      @listenTo @model, 'change', @_reloadModel
       @mapData =
         type: @type
         mapType: 'roadmap'
@@ -89,9 +103,13 @@ define (require) ->
         height: @options.height ? '100%'
       super
 
+    _reloadModel: ->
+      @clear()
+      @load(@model)
+
     edit: (e) ->
       e.preventDefault()
-      alert 'sss'
+      app.editGeometry @model
 
 
   class Editor extends Base
@@ -105,6 +123,24 @@ define (require) ->
         width: @options.width ? '100%'
         height: @options.height ? '100%'
       super
+
+    handleMapEvents: ->
+      map = @getMap()
+      map.subscribe 'drawing_finished', (feature, toSave) =>
+        if toSave
+          @_onSave feature
+        else
+          @_onCancel feature
+
+    _onCancel: (feature) ->
+      @trigger 'cancel'
+
+    _onSave: (feature) ->
+      @trigger 'save', feature.getGeoJson()
+
+    edit: (model) ->
+      @load model if model?
+      @getMap().editFeature()
 
 
   return {

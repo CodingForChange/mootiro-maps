@@ -44,6 +44,7 @@
           this.loaded = false;
         }
         this.mapElement.on('initialized', function() {
+          if (typeof _this.handleMapEvents === "function") _this.handleMapEvents();
           return _this.trigger('initialize');
         });
         this.render();
@@ -59,7 +60,8 @@
           _this.$el.empty().css({
             height: '100%'
           }).append(_this.mapElement);
-          _this.refresh().fadeTo(100, 1);
+          _this.refresh();
+          _this.center().fadeTo(100, 1);
           mapElementCache[_this.type] = _this.mapElement;
           _this.loaded = true;
           if (_this.mode != null) return _this.setMode(_this.mode);
@@ -67,7 +69,7 @@
         if (!this.loaded) {
           this.mapElement.komooMap(this.mapData);
         } else {
-          this.mapElement.komooMap('geojson', this.model.get('geojson'));
+          this.load(this.model);
         }
         return this;
       };
@@ -90,7 +92,23 @@
       };
 
       Base.prototype.refresh = function() {
-        return this.mapElement.komooMap('refresh').komooMap('center');
+        return this.mapElement.komooMap('refresh');
+      };
+
+      Base.prototype.center = function() {
+        return this.mapElement.komooMap('center');
+      };
+
+      Base.prototype.load = function(model) {
+        this.model = model;
+        if (!(this.model != null)) return;
+        this.mapElement.komooMap('geojson', this.model.get('geojson'));
+        return this.center();
+      };
+
+      Base.prototype.clear = function() {
+        var _ref;
+        return (_ref = this.getMap()) != null ? _ref.clear() : void 0;
       };
 
       Base.prototype.getMap = function() {
@@ -117,21 +135,28 @@
       };
 
       Preview.prototype.initialize = function() {
-        var _ref, _ref2, _ref3;
+        var _ref, _ref2, _ref3, _ref4;
+        this.overlayText = (_ref = this.options.overlayText) != null ? _ref : i18n('Edit');
+        this.listenTo(this.model, 'change', this._reloadModel);
         this.mapData = {
           type: this.type,
           mapType: 'roadmap',
-          zoom: (_ref = this.options.zoom) != null ? _ref : 16,
+          zoom: (_ref2 = this.options.zoom) != null ? _ref2 : 16,
           geojson: this.model.get('geojson'),
-          width: (_ref2 = this.options.width) != null ? _ref2 : '100%',
-          height: (_ref3 = this.options.height) != null ? _ref3 : '100%'
+          width: (_ref3 = this.options.width) != null ? _ref3 : '100%',
+          height: (_ref4 = this.options.height) != null ? _ref4 : '100%'
         };
         return Preview.__super__.initialize.apply(this, arguments);
       };
 
+      Preview.prototype._reloadModel = function() {
+        this.clear();
+        return this.load(this.model);
+      };
+
       Preview.prototype.edit = function(e) {
         e.preventDefault();
-        return alert('sss');
+        return app.editGeometry(this.model);
       };
 
       return Preview;
@@ -158,6 +183,32 @@
           height: (_ref6 = this.options.height) != null ? _ref6 : '100%'
         };
         return Editor.__super__.initialize.apply(this, arguments);
+      };
+
+      Editor.prototype.handleMapEvents = function() {
+        var map,
+          _this = this;
+        map = this.getMap();
+        return map.subscribe('drawing_finished', function(feature, toSave) {
+          if (toSave) {
+            return _this._onSave(feature);
+          } else {
+            return _this._onCancel(feature);
+          }
+        });
+      };
+
+      Editor.prototype._onCancel = function(feature) {
+        return this.trigger('cancel');
+      };
+
+      Editor.prototype._onSave = function(feature) {
+        return this.trigger('save', feature.getGeoJson());
+      };
+
+      Editor.prototype.edit = function(model) {
+        if (model != null) this.load(model);
+        return this.getMap().editFeature();
       };
 
       return Editor;

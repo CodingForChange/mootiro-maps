@@ -272,11 +272,10 @@
       };
 
       ActionBar.prototype["do"] = function(e) {
-        var action, url, _base, _name;
+        var action;
         e.preventDefault();
         action = $(e.target).hasClass('active') ? 'show' : $(e.target).attr('data-action');
-        url = typeof (_base = this.model)[_name = "" + action + "Url"] === "function" ? _base[_name]() : void 0;
-        return app.goTo(url);
+        return typeof app[action] === "function" ? app[action](this.model) : void 0;
       };
 
       ActionBar.prototype.setMode = function(mode) {
@@ -308,8 +307,8 @@
           parentSelector: '#map-container'
         });
         this.subViews.push(this.mapEditor);
-        this.listenTo(this.mapEditor, 'initialize', function() {
-          return _this.trigger('initialize');
+        this.listenTo(this.mapEditor, 'all', function() {
+          return _this.trigger.apply(_this, arguments);
         });
         $(window).resize(this.resizeElement);
         return this.render();
@@ -343,8 +342,24 @@
         return this;
       };
 
+      MapEditor.prototype.refresh = function() {
+        return this.mapEditor.refresh.apply(this.mapEditor, arguments);
+      };
+
+      MapEditor.prototype.load = function() {
+        return this.mapEditor.load.apply(this.mapEditor, arguments);
+      };
+
+      MapEditor.prototype.edit = function() {
+        return this.mapEditor.edit.apply(this.mapEditor, arguments);
+      };
+
+      MapEditor.prototype.clear = function() {
+        return this.mapEditor.clear.apply(this.mapEditor, arguments);
+      };
+
       MapEditor.prototype.getMap = function() {
-        return this.mapEditor.getMap();
+        return this.mapEditor.getMap.apply(this.mapEditor, arguments);
       };
 
       return MapEditor;
