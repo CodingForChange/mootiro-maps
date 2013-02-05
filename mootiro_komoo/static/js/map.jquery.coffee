@@ -19,6 +19,7 @@ define (require) ->
                     require ['core/map/maps'], (maps) =>
                         map = maps.makeMap opts
                         map.subscribe 'features_loaded', (features) =>
+                            console.log 'features loaded'
                             $this.trigger 'features_loaded', features
                         $this.data 'map', map
                         if opts.mapType? then map.googleMap.setMapTypeId opts.mapType

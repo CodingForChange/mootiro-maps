@@ -55,12 +55,11 @@
         var _this = this;
         this.mapElement.detach();
         this.$el.html("<div class=\"loading\">" + (i18n('Loading...')) + "</div>");
-        this.mapElement.one('features_loaded', function(e) {
+        this.mapElement.one('initialized', function(e) {
           _this.mapElement.fadeTo(0, 0);
           _this.$el.empty().css({
             height: '100%'
           }).append(_this.mapElement);
-          _this.refresh();
           _this.center().fadeTo(100, 1);
           mapElementCache[_this.type] = _this.mapElement;
           _this.loaded = true;
@@ -69,6 +68,9 @@
         if (!this.loaded) {
           this.mapElement.komooMap(this.mapData);
         } else {
+          this.$el.empty().css({
+            height: '100%'
+          }).append(this.mapElement);
           this.load(this.model);
         }
         return this;
@@ -96,14 +98,20 @@
       };
 
       Base.prototype.center = function() {
+        var map;
+        map = this.getMap();
+        this.refresh();
         return this.mapElement.komooMap('center');
       };
 
       Base.prototype.load = function(model) {
+        var _this = this;
         this.model = model;
         if (!(this.model != null)) return;
-        this.mapElement.komooMap('geojson', this.model.get('geojson'));
-        return this.center();
+        this.mapElement.one('features_loaded', function(e) {
+          return _this.center();
+        });
+        return this.mapElement.komooMap('geojson', this.model.get('geojson'));
       };
 
       Base.prototype.clear = function() {
@@ -152,6 +160,11 @@
       Preview.prototype._reloadModel = function() {
         this.clear();
         return this.load(this.model);
+      };
+
+      Preview.prototype.load = function() {
+        this.clear();
+        return Preview.__super__.load.apply(this, arguments);
       };
 
       Preview.prototype.edit = function(e) {

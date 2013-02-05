@@ -38,10 +38,9 @@ define (require) ->
       @mapElement.detach()
       @$el.html """<div class="loading">#{i18n('Loading...')}</div>"""
 
-      @mapElement.one 'features_loaded', (e) =>
+      @mapElement.one 'initialized', (e) =>
         @mapElement.fadeTo 0, 0
         @$el.empty().css(height: '100%').append @mapElement
-        @refresh()
         @center().fadeTo 100, 1
         mapElementCache[@type] = @mapElement
         @loaded = true
@@ -50,6 +49,7 @@ define (require) ->
       if not @loaded
         @mapElement.komooMap @mapData
       else
+        @$el.empty().css(height: '100%').append @mapElement
         @load @model
 
       this
@@ -71,12 +71,14 @@ define (require) ->
       @mapElement.komooMap('refresh')
 
     center: ->
+      map = @getMap()
+      @refresh()
       @mapElement.komooMap('center')
 
     load: (@model) ->
       return if not @model?
+      @mapElement.one 'features_loaded', (e) => @center()
       @mapElement.komooMap('geojson', @model.get('geojson'))
-      @center()
 
     clear: ->
       @getMap()?.clear()
@@ -106,6 +108,10 @@ define (require) ->
     _reloadModel: ->
       @clear()
       @load(@model)
+
+    load: ->
+      @clear()
+      super
 
     edit: (e) ->
       e.preventDefault()
