@@ -26,6 +26,7 @@
               var map;
               map = maps.makeMap(opts);
               map.subscribe('features_loaded', function(features) {
+                console.log('features loaded');
                 return $this.trigger('features_loaded', features);
               });
               $this.data('map', map);

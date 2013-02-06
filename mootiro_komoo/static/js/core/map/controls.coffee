@@ -268,7 +268,7 @@ define (require) ->
               <div class="map-panel-title" id="drawing-control-title">#{title}</div>
               <div class="content" id="drawing-control-content"></div>
               <div class="map-panel-buttons">
-                <div class="map-button" id="drawing-control-cancel">#{_CLOSE}</div>
+                <a class="button" id="drawing-control-cancel" href="#">#{_CLOSE}</a>
               </div>
             </div>
             """
@@ -306,7 +306,7 @@ define (require) ->
                 </li>
               </ul>
               <div class="map-panel-buttons">
-                <div class="map-button" id="drawing-control-cancel">#{_CANCEL}</div>
+                <a class="button" id="drawing-control-cancel" href="#">#{_CANCEL}</a>
               </div>
             </div>
             """
@@ -355,8 +355,8 @@ define (require) ->
               <div class="map-panel-title" id="drawing-control-title"></div>
               <div class="content" id="drawing-control-content"></div>
               <div class="map-panel-buttons">
-                <div class="map-button" id="drawing-control-finish">#{_NEXT_STEP}</div>
-                <div class="map-button" id="drawing-control-cancel">#{_CANCEL}</div>
+                <a class="button" id="drawing-control-finish" href="#">#{_NEXT_STEP}</a>
+                <a class="button" id="drawing-control-cancel" href="#">#{_CANCEL}</a>
               </div>
             </div>
             """
@@ -398,7 +398,7 @@ define (require) ->
             else
                 $("#drawing-control-content", @box).show()
                 $("#drawing-control-finish", @box).removeClass 'disabled'
-            $(".map-button.active", @box).removeClass "active"
+            $(".button.active", @box).removeClass "active"
             $("#drawing-control-#{@mode?.toLowerCase()}", @box).addClass "active"
 
         getTitle: ->
@@ -414,9 +414,9 @@ define (require) ->
             """<i class="icon-#{geometry} middle"></i><span class="middle">#{title}</span>"""
 
         getContent: ->
-            add = $("""<div class="map-button" id="drawing-control-add"><i class="icon-komoo-plus middle"></i><span class="middle">#{_SUM}</span></div>""")
-            cutout = $("""<div class="map-button" id="drawing-control-cutout"><i class="icon-komoo-minus middle"></i><span class="middle">#{_CUT_OUT}</span></div>""")
-            remove = $("""<div class="map-button" id="drawing-control-delete"><i class="icon-komoo-trash middle"></i></div>""")
+            add = $("""<a class="button add" id="drawing-control-add" href="#">#{_SUM}</a>""")
+            cutout = $("""<a class="button remove" id="drawing-control-cutout" href="#">#{_CUT_OUT}</a>""")
+            remove = $("""<a class="button delete" id="drawing-control-delete" href="#"></a>""")
 
             content = $("<div>").addClass @feature.getGeometryType().toLowerCase()
             if @feature.getGeometryType() isnt POINT

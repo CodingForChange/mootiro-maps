@@ -2,6 +2,9 @@ trans =
   'send':
     'pt-br': 'enviar'
 
+  'Edit':
+    'pt-br': 'Editar'
+
   'Login':
     'pt-br': 'Entrar'
 
@@ -163,6 +166,12 @@ trans =
 
   'Longitude':
     'pt-br': 'Longitude'
+
+  'Loading...':
+    'pt-br': 'Carregando...'
+
+  'Change point position':
+    'pt-br': 'Mudar ponto no mapa'
 
 
 window.i18n = (str) ->

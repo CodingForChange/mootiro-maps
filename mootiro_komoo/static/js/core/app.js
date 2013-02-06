@@ -23,20 +23,6 @@
         });
       }
 
-      App.prototype.goTo = function(url, page) {
-        var _this = this;
-        return $.when(pageManager.canClose()).done(function() {
-          if (page != null) {
-            _this.routers[0].navigate(url);
-            return pageManager.open(page);
-          } else {
-            return _this.routers[0].navigate(url, {
-              trigger: true
-            });
-          }
-        });
-      };
-
       App.prototype.handleModulesError = function() {
         var _this = this;
         requirejs.onError = function(err) {
@@ -121,9 +107,8 @@
         require(['main/views'], function(mainViews) {
           var feedback, footer, header;
           $('body').prepend($('<div id="fb-root" />'));
-          feedback = new mainViews.Feedback({
-            el: '#feedback-container'
-          });
+          feedback = new mainViews.Feedback();
+          $('#feedback-container').append(feedback.$el);
           header = new mainViews.Header({
             el: '#header-container',
             model: KomooNS.user
@@ -187,21 +172,80 @@
         return dfd.promise();
       };
 
-      App.prototype.showMainMap = function() {
+      App.prototype.closeOverlays = function() {
+        return this.hideMainMap();
+      };
+
+      App.prototype.goTo = function(url, page) {
         var _this = this;
-        return $.when(this.initialized).done(function() {
-          $('#map-editor-container').show();
-          return _this.mapEditor.getMap().refresh();
+        if (page == null) page = null;
+        return $.when(pageManager.canClose()).done(function() {
+          _this.closeOverlays();
+          if (page != null) {
+            _this.routers[0].navigate(url);
+            return pageManager.open(page);
+          } else {
+            return _this.routers[0].navigate(url, {
+              trigger: true
+            });
+          }
         });
+      };
+
+      App.prototype.showMainMap = function(model) {
+        var dfd,
+          _this = this;
+        if (model == null) model = null;
+        dfd = new $.Deferred();
+        $.when(this.initialized).done(function() {
+          $('#map-editor-container').show();
+          _this.mapEditor.refresh();
+          _this.mapEditor.load(model);
+          return dfd.resolve(true);
+        });
+        return dfd.promise();
       };
 
       App.prototype.hideMainMap = function() {
         var _this = this;
-        return $.when(this.initialize).done(function() {
+        return $.when(this.initialized).done(function() {
           $('#map-editor-container').hide();
-          return _this.mapEditor.getMap().refresh();
+          return _this.mapEditor.clear();
         });
       };
+
+      App.prototype.show = function(model) {
+        return this.goTo(model.showUrl());
+      };
+
+      App.prototype.edit = function(model) {
+        return this.goTo(model.editUrl());
+      };
+
+      App.prototype.editGeometry = function(model) {
+        var _this = this;
+        return $.when(this.showMainMap(model)).done(function() {
+          _this.mapEditor.edit();
+          _this.mapEditor.once('cancel', function() {
+            return _this.hideMainMap();
+          });
+          return _this.mapEditor.once('save', function(geojson) {
+            model.get('geojson')['features'] = [geojson];
+            model.trigger('change change:geojson');
+            return _this.hideMainMap();
+          });
+        });
+      };
+
+      App.prototype.rate = function(model) {};
+
+      App.prototype.discuss = function(model) {};
+
+      App.prototype.history = function(model) {};
+
+      App.prototype.report = function(model) {};
+
+      App.prototype["delete"] = function(model) {};
 
       return App;
 

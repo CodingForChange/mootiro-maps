@@ -22,6 +22,7 @@
     };
     EditOverlayMixin = {
       _overlayTemplate: _.template(require('text!templates/core/_edit_overlay.html')),
+      overlayText: i18n('Edit this'),
       setMode: function(mode) {
         var _ref;
         this.mode = mode != null ? mode : (_ref = this.options.mode) != null ? _ref : 'show';
@@ -32,10 +33,9 @@
         }
       },
       showOverlay: function(msg) {
-        if (msg == null) msg = i18n("Edit this");
         if (this._overlay == null) {
           this._overlay = $(this._overlayTemplate({
-            msg: msg
+            msg: msg != null ? msg : this.overlayText
           }));
         }
         return this.$el.append(this._overlay.css({

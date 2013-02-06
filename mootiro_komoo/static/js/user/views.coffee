@@ -103,6 +103,7 @@ define (require) ->
       @subViews.push new mapViews.Preview
         model: @model
         mode: @options.mode
+        overlayText: i18n 'Change point position'
         parentSelector: '.map.box'
 
       @render()
