@@ -11,10 +11,11 @@ from resources.models import Resource
 class ResourceModelTestCase(unittest.TestCase):
 
     def _create_resource(self):
-        res, created = Resource.objects.get_or_create(
-            name='Clube do Cebolinha',
-            description='cLiação de planos infalíveis',
-        )
+        res = Resource.get_by_id(1)
+        if not res:
+            res = Resource(id=1)
+        res.name = 'Clube do Cebolinha'
+        res.description = 'cLiação de planos infalíveis'
         res.creator = self.test_user
         res.creation_date = const.DATETIME_OBJ
         res.resource_type = 'others'
@@ -44,6 +45,7 @@ class ResourceModelTestCase(unittest.TestCase):
     def from_dict_test(self):
         res = Resource()
         res.from_dict(self.expected_dict)
+        res.save()
         res_dict = filter_dict(res.to_dict(), ['id', 'last_update'])
         self.assertDictEqual(res_dict, self.expected_dict)
 

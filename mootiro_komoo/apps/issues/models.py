@@ -38,9 +38,9 @@ class Issue(CommonObject):
 
     # ================== utils =============================
     def from_dict(self, data):
-        super(Issue, self).from_dict(data)
         keys = ['issue_type', ]
         build_obj_from_dict(self, data, keys)
+        super(Issue, self).from_dict(data)
 
     def to_dict(self):
         dict_ = super(Issue, self).to_dict()

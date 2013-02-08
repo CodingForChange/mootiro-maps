@@ -12,14 +12,16 @@ class OrganizationModelTestCase(unittest.TestCase):
 
     @classmethod
     def _create_organization(self):
-        it3s, created = Organization.objects.get_or_create(
-            name='IT3S',
-            description='Instituto de Fomento a Tec do 3o setor',
-        )
+        it3s = Organization()
+        # if not it3s:
+        #     it3s = Organization(id=1)
+        it3s.name = 'IT3S'
+        it3s.description = 'Instituto de Fomento a Tec do 3o setor'
         it3s.creator = self.test_user
         it3s.creation_date = const.DATETIME_OBJ
         it3s.organization_type = 'ong'
         it3s.save()
+        it3s.creation_date = const.DATETIME_OBJ
         return it3s
 
     test_user = create_test_user()
@@ -46,6 +48,7 @@ class OrganizationModelTestCase(unittest.TestCase):
     def from_dict_test(self):
         org = Organization()
         org.from_dict(self.expected_dict)
+        org.save()
         org_dict = filter_dict(org.to_dict(), ['id', 'last_update'])
         self.assertDictEqual(org_dict, self.expected_dict)
 

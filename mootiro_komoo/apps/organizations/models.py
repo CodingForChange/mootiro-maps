@@ -47,10 +47,10 @@ class Organization(CommonObject):
         geometries = (POLYGON, POINT)
 
     # ================== utils ============================
-    def from_dict(self, data):
+    def from_dict(self, data, *args, **kwargs):
         keys = ['organization_type', 'contact']
         build_obj_from_dict(self, data, keys)
-        super(Organization, self).from_dict(data)
+        super(Organization, self).from_dict(data, *args, **kwargs)
 
     def to_dict(self):
         data = super(Organization, self).to_dict()

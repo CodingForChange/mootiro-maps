@@ -11,15 +11,17 @@ from issues.models import Issue
 class IssueModelTestCase(unittest.TestCase):
 
     def _create_issue(self):
-        issue, created = Issue.objects.get_or_create(
-            name='Lixo na Rua',
-            description='Ta fidido!',
-        )
+        issue = Issue.get_by_id(1)
+        if not issue:
+            issue = Issue(id=1)
+        issue.name = 'Lixo na Rua'
+        issue.description = 'Ta fidido!'
         issue.creator = self.test_user
-        issue.creation_date = const.DATETIME_OBJ
         issue.issue_type = 'problem'
         issue.population = 120
+        issue.creation_date = const.DATETIME_OBJ
         issue.save()
+        issue.creation_date = const.DATETIME_OBJ
         return issue
 
     test_user = create_test_user()
@@ -45,6 +47,7 @@ class IssueModelTestCase(unittest.TestCase):
     def from_dict_test(self):
         issue = Issue()
         issue.from_dict(self.expected_dict)
+        issue.save()
         issue_dict = filter_dict(issue.to_dict(), ['id', 'last_update'])
         self.assertDictEqual(issue_dict, self.expected_dict)
 

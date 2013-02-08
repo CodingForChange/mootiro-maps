@@ -129,20 +129,14 @@ class Project(BaseModel, CommonDataMixin):
         return data
 
     def from_dict(self, data):
-        super(Project, self).from_dict(data)
         keys = ['contact', 'public', 'public_discussion', 'region']
-        ignore_keys = []
-
         if self.id:
             keys.append('contributors')
         else:
-            self._postponed = getattr(self, '_postponed', [])
+            self.postpone_attr('contributors', data.get('contributors', []))
 
-            self._postponed.append(
-                    ('contributors', data.get('contributors', [])))
-            ignore_keys.append('contributors')
-
-        build_obj_from_dict(self, data, keys, ignore_keys=ignore_keys)
+        build_obj_from_dict(self, data, keys)
+        super(Project, self).from_dict(data)
 
     def is_valid(self):
         validates = super(Project, self).is_valid()

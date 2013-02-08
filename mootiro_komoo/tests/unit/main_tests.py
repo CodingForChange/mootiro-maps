@@ -8,6 +8,7 @@ setup_env()
 from main.utils import filter_dict
 from main.models import CommonDataMixin, GenericRelation
 from tests.models import TestModelA, TestModelB, TestCommonObjectModel
+from tags.models import EMPTY_TAG
 
 
 class MyClass(CommonDataMixin):
@@ -67,10 +68,10 @@ class CommonDataMixinTest(unittest.TestCase):
             'last_update': None,
             'extra_data': {'bla': 'ble', 'some_number': 3},
             'tags': {'common': ['tag1', 'tag2', 'tag3']},
+            'id': 1
         }
         obj = MyClass()
-        obj.id = 1
-        obj.from_dict(data_dict)
+        obj.from_dict(data_dict, complete_object=True)
         self.assertEqual('object test', obj.name)
         self.assertEqual('this is a simple attributes test', obj.description)
         self.assertEqual(self.user, obj.creator)
@@ -176,7 +177,7 @@ class CommonObjectTestCase(unittest.TestCase):
             'id': None,
             'name': '',
             'description': '',
-            'tags': {'common': []},
+            'tags': EMPTY_TAG,
             'creator': None,
             'creation_date': None,
             'last_editor': None,
@@ -225,11 +226,11 @@ class CommonObjectTestCase(unittest.TestCase):
         obj.from_dict(self.expected_dict)
         obj.save()
 
-        expected = filter_dict(self.expected_dict,
-                               ['last_update', 'creation_date', 'id'])
         obj_dict = filter_dict(obj.to_dict(),
                                ['last_update', 'creation_date', 'id'])
-        self.assertDictEqual(expected, obj_dict)
+        expected = filter_dict(self.expected_dict,
+                               ['last_update', 'creation_date', 'id'])
+        self.assertDictEqual(obj_dict, expected)
 
     def is_valid_test(self):
         # TestCommonObjectModel.objects.all().delete()

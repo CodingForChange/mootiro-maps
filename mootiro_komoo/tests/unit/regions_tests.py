@@ -11,10 +11,11 @@ from regions.models import Region
 class RegionModelTestCase(unittest.TestCase):
 
     def _create_region(self):
-        reg, created = Region.objects.get_or_create(
-            name='Bairro do Limoeiro',
-            description='Casa da Turma da Monica',
-        )
+        reg = Region.get_by_id(1)
+        if not reg:
+            reg = Region(id=1)
+        reg.name = 'Bairro do Limoeiro'
+        reg.description = 'Casa da Turma da Monica'
         reg.creator = self.test_user
         reg.creation_date = const.DATETIME_OBJ
         reg.region_type = 'rural'
@@ -46,6 +47,7 @@ class RegionModelTestCase(unittest.TestCase):
     def from_dict_test(self):
         reg = Region()
         reg.from_dict(self.expected_dict)
+        reg.save()
         reg_dict = filter_dict(reg.to_dict(), ['id', 'last_update'])
         self.assertDictEqual(reg_dict, self.expected_dict)
 

@@ -6,7 +6,7 @@ from django.utils.translation import ugettext as _
 from django.core.paginator import Paginator
 from jsonfield import JSONField
 
-from tags.models import TagField
+from tags.models import TagField, EMPTY_TAG
 
 from komoo_map.models import GeoRefModel
 from authentication.models import User
@@ -99,25 +99,36 @@ class CommonDataMixin(models.Model, BaseDAOMixin):
             'extra_data': self.extra_data,
         }
 
-    def from_dict(self, data):
-        keys = [
-            'name', 'description', 'last_editor', 'creation_date',
-            'last_update', 'extra_data']
-        date_keys = ['creation_date', 'last_update']
-        ignore_keys = ['id', ]
+    def postpone_attr(self, key, val):
+        self._postponed = getattr(self, '_postponed', [])
+        self._postponed.append((key, val))
 
-        if self.id:
-            keys.append('tags')
+    def from_dict(self, data, complete_object=False, *args, **kwargs):
+        self._postponed = getattr(self, '_postponed', [])
+        attrs = [
+            'id', 'name', 'description', 'last_editor', 'creation_date',
+            'last_update', 'extra_data', 'creator']
+        update_attrs = [attr for attr in attrs[::] if not attr in
+                ['id', 'creator', 'last_update', 'creation_date']]
+        insert_attrs = [attr for attr in attrs[::] if not attr in
+                ['id', 'last_editor', 'last_update', 'creation_date']]
+
+        if complete_object:
+            keys = attrs
+        elif getattr(self, 'id', None):
+            keys = update_attrs
         else:
-            keys.append('creator')
-            self._postponed = getattr(self, '_postponed', [])
+            keys = insert_attrs
+            if data.get('creation_date', None):
+                self.postpone_attr('creation_date', data['creation_date'])
 
-            self._postponed.append(
-                    ('tags', data.get('tags', {'common': []})))
-            ignore_keys.append('tags')
+        [
+            self.postpone_attr(attr, val) for attr, val in
+                [('tags', data.get('tags', EMPTY_TAG)), ]
+        ]
 
-        build_obj_from_dict(self, data, keys, date_keys,
-                            ignore_keys=ignore_keys)
+        date_keys = ['creation_date', 'last_update']
+        build_obj_from_dict(self, data, keys, date_keys)
 
     def is_valid(self):
         self.errors = {}

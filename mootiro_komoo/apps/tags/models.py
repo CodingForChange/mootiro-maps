@@ -5,6 +5,8 @@ from django.db import IntegrityError
 
 COMMON_NAMESPACE = 'common'
 
+EMPTY_TAG = {COMMON_NAMESPACE: []}
+
 
 class TagNamespace(models.Model):
     """ Namespace for Tags """

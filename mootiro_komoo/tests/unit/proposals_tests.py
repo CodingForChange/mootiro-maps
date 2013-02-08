@@ -11,10 +11,11 @@ from proposals.models import Proposal
 class ProposalModelTestCase(unittest.TestCase):
 
     def _create_proposal(self):
-        prop, created = Proposal.objects.get_or_create(
-            name='Limpeza Colaborativa do Bairro',
-            description='Vamos marcar um multirão de limpeza',
-        )
+        prop = Proposal.get_by_id(1)
+        if not prop:
+            prop = Proposal(id=1)
+        prop.name='Limpeza Colaborativa do Bairro'
+        prop.description='Vamos marcar um multirão de limpeza'
         prop.creator = self.test_user
         prop.creation_date = const.DATETIME_OBJ
         prop.cost = 200.00
@@ -46,6 +47,7 @@ class ProposalModelTestCase(unittest.TestCase):
     def from_dict_test(self):
         prop = Proposal()
         prop.from_dict(self.expected_dict)
+        prop.save()
         prop_dict = filter_dict(prop.to_dict(), ['id', 'last_update'])
         self.assertDictEqual(prop_dict, self.expected_dict)
 
